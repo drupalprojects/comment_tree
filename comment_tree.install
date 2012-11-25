@@ -47,3 +47,19 @@ function comment_tree_schema() {
   
   return $schema;
 }
+
+/**
+ * Implements hook_enable().
+ */
+function comment_tree_enable() {
+  
+  $query = db_select('comment', 'c');
+  $query->addExpression('COUNT(*)', 'count');
+  $count = $query->execute()->fetchField();
+  
+  if (!empty($count)) {
+    $link = l(t('Generate a Comment Tree'), 'admin/config/system/comment-tree');
+    drupal_set_message(t('You Must !link before this module can work properly.', array('!link' => $link)), 'error');
+  }
+  
+}

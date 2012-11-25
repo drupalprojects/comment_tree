@@ -99,3 +99,148 @@ function comment_tree_comment_delete($comment) {
   
 }
 
+/**
+* Implements hook_menu().
+*/
+function comment_tree_menu() {
+
+   // Admin Pages
+  $items['admin/config/system/comment-tree'] = array(
+    'title' => 'Comment Tree',
+    'description' => 'Generate the Comment Tree',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('comment_tree_generate_form'),
+    'access arguments' => array('administer comment_tree'),
+  );
+  
+  return $items;
+}
+
+/**
+* Implements hook_permission().
+*/
+function comment_tree_permission() {
+  return array(
+    'administer comment_tree' => array(
+      'title' => t('Administer Comment Tree'), 
+      'restrict access' => TRUE,
+    ),
+  );
+}
+
+/**
+* Generate Form; Build Form
+*/
+function comment_tree_generate_form($form, &$form_state) {
+  
+  $link = l(t('Maintenance Mode'), 'admin/config/development/maintenance');
+  $form['info'] = array(
+    '#markup' => t('Generating a new Comment Tree will delete the current tree and generate a new one. It is highly recommended that you first put your site in !link.', array('!link' => $link)),
+  );
+  
+  $form['actions'] = array(
+    '#type' => 'actions',
+  );
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Generate'),
+  );
+  
+  return $form;
+    
+}
+
+/**
+* Generate Form; Form Submit
+*/
+function comment_tree_generate_form_submit($form, &$form_state) {
+
+  $batch = array(
+    'title' => t('Generating Comment Tree'),
+    'operations' => array(
+      array('comment_tree_generate', array()),
+    ),
+  );
+  batch_set($batch);
+
+}
+
+/**
+* Comment Tree Generate
+*/
+function comment_tree_generate(&$context) {
+    
+    if (!isset($context['sandbox']['total'])) {
+       
+       $query = db_select('comment', 'c');
+       $query->fields('c', array('cid'));
+       $query->orderBy('cid', 'DESC');
+       $query->range(0,1);
+       $last = $query->execute()->fetchField();
+       
+       $context['sandbox']['total'] = $last;
+       
+       if (empty($context['sandbox']['total'])) {
+         $context['finished'] = 1;
+         drupal_set_message(t('No Comments to Process.'));
+         return;
+       }
+       
+       $query = db_delete('comment_tree');
+       $query->execute();
+       
+       $context['finished'] = 0;
+       $context['sandbox']['current'] = 0;
+       
+    }
+     
+    $query = db_select('comment', 'c');
+    $query->fields('c', array('cid', 'pid'));
+    $query->orderBy('cid');
+    $query->condition('cid', $context['sandbox']['current'], '>');
+    $query->range(0,5);
+    $batch = $query->execute();
+    
+    while ($current = $batch->fetchAssoc()) {
+    
+      // Add the Link to itself (Depth 0)
+      $query = db_insert('comment_tree');
+      $query->fields(array(
+        'ancestor' => $current['cid'],
+        'descendant' => $current['cid'],
+        'depth' => 0,
+      ));
+      $query->execute();
+      
+      if (!empty($current['pid'])) {
+        
+        // Get the tree of the comment's parent
+        $query = db_select('comment_tree', 'c');
+        $query->fields('c', array('ancestor', 'depth'));
+        $query->condition('c.descendant', $current['pid']);
+        $result = $query->execute();
+        
+        while ($record = $result->fetchAssoc()) {
+          $query = db_insert('comment_tree');
+          $query->fields(array(
+            'ancestor' => $record['ancestor'],
+            'descendant' => $current['cid'],
+            'depth' => $record['depth'] + 1,
+          ));
+          $query->execute();
+        }
+        
+      }
+      
+      $context['sandbox']['current'] = $current['cid'];
+    
+    }
+    
+    $context['message'] = 'Now Processing Comment ' . $context['sandbox']['current'];
+    $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total'];
+    
+    if ($context['finished'] == 1) {
+      drupal_set_message(t('Comment Tree Generation Complete.'));
+    }
+    
+}
