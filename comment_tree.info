@@ -1,1 +1,6 @@
 name = Comment Tree
+description = Creates a Closure Table for Comments
+package = Comment
+version = 7.x-1.x-dev
+core = 7.x
+dependencies[] = comment
