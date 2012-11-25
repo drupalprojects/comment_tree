@@ -1,6 +1,101 @@
 <?php
 
 /**
- * Implements hook_().
+ * Implements hook_comment_insert().
+ *
+ * When a comment is inserted, create it's tree.
+ *
  */
+function comment_tree_comment_insert($comment) {
+  
+  // Add the Link to itself (Depth 0)
+  $query = db_insert('comment_tree');
+  $query->fields(array(
+    'ancestor' => $comment->cid,
+    'descendant' => $comment->cid,
+    'depth' => 0,
+  ));
+  $query->execute();
+  
+  if (!empty($comment->pid)) {
+    
+    // Get the tree of the comment's parent
+    $query = db_select('comment_tree', 'c');
+    $query->fields('c', array('ancestor', 'depth'));
+    $query->condition('c.descendant', $comment->pid);
+    $result = $query->execute();
+    
+    while ($record = $result->fetchAssoc()) {
+      $query = db_insert('comment_tree');
+      $query->fields(array(
+        'ancestor' => $record['ancestor'],
+        'descendant' => $comment->cid,
+        'depth' => $record['depth'] + 1,
+      ));
+      $query->execute();
+    }
+    
+  }
+  
+}
+
+/**
+ * Implements hook_comment_update().
+ *
+ * Move a Comment to it's New Parent's Tree
+ * If the Parent has changed
+ *
+ */
+function comment_tree_comment_update($comment) {
+
+  if ($comment->original->pid != $comment->pid) {
+    
+    // First Remove the Tree above this comment
+    // We'll use db_query since db_delete does not allow joining
+    db_query('DELETE a FROM {comment_tree} AS a JOIN {comment_tree} AS d ON a.descendant = d.descendant LEFT JOIN {comment_tree} AS x ON x.ancestor = d.ancestor AND x.descendant = a.ancestor WHERE d.ancestor = :cid AND x.ancestor IS NULL', array(':cid' => $comment->cid));
+    
+    // If the Comment has a Parent, move it under the new parent's tree
+    if (!empty($comment->pid)) {
+      
+      $query = db_select('comment_tree', 'supertree');
+      $query->addField('supertree', 'ancestor', 'ancestor');
+      $query->addField('subtree', 'descendant', 'descendant');
+      $query->addExpression('supertree.depth+subtree.depth+1', 'depth');
+      $query->join('comment_tree', 'subtree');
+      $query->condition('subtree.ancestor', $comment->cid);
+      $query->condition('supertree.descendant', $comment->pid);
+      $result = $query->execute();
+      
+      while ($record = $result->fetchAssoc()) {
+        $query = db_insert('comment_tree');
+        $query->fields(array(
+          'ancestor' => $record['ancestor'],
+          'descendant' => $record['descendant'],
+          'depth' => $record['depth'],
+        ));
+        $query->execute();
+      }
+      
+    }
+      
+  }
+  
+}
+
+/**
+ * Implements hook_comment_delete().
+ *
+ * Deletes the Comment's Tree on Comment Delete
+ *
+ */
+function comment_tree_comment_delete($comment) {
+
+  $query = db_delete('comment_tree');
+  $or = db_or();
+  $or->condition('ancestor', $comment->cid);
+  $or->condition('descendant', $comment->cid);
+  $query->condition($or);
+  $query->execute();
+  
+}
 
