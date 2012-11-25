@@ -1,0 +1,49 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function comment_tree_schema() {
+
+  $schema['comment_tree'] = array(
+    'description' => 'Comment Hierarchy', 
+    'fields' => array(
+      'ancestor' => array(
+        'description' => 'The current {comment}.cid ancestor.', 
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+      ), 
+      'decedent' => array(
+        'description' => 'The current {comment}.cid decedent.', 
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE, 
+      ),
+      'depth' => array(
+        'description' => 'The depth of the decedent compared to the ancestor.', 
+        'type' => 'int', 
+        'unsigned' => TRUE, 
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+    ), 
+    'indexes' => array(
+      'comment_ancestor' => array('ancestor'), 
+      'comment_decedent' => array('decedent'),
+    ), 
+    'foreign keys' => array(
+      'comment_ancestor' => array(
+        'table' => 'comment', 
+        'columns' => array('ancestor' => 'cid'),
+      ), 
+      'comment_decedent' => array(
+        'table' => 'comment', 
+        'columns' => array('decedent' => 'uid'),
+      ),
+    ), 
+    'primary key' => array('ancestor', 'decedent'),
+  );
+  
+  return $schema;
+}
