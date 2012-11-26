@@ -61,7 +61,7 @@ function comment_tree_comment_update($comment) {
     $query_string .= 'JOIN {comment_tree} AS d ';
     $query_string .= 'ON a.descendant = d.descendant ';
     $query_string .= 'LEFT JOIN {comment_tree} AS x ';
-    $query_string .= 'x.ancestor = d.ancestor AND x.descendant = a.ancestor ';
+    $query_string .= 'ON x.ancestor = d.ancestor AND x.descendant = a.ancestor ';
     $query_string .= 'WHERE d.ancestor = :cid AND ';
     $query_string .= 'x.ancestor IS NULL';
     db_query($query_string, array(':cid' => $comment->cid));
