@@ -91,7 +91,7 @@ function comment_tree_comment_update($comment) {
     }
 
   }
-  
+
 }
 
 /**
@@ -111,8 +111,8 @@ function comment_tree_comment_delete($comment) {
 }
 
 /**
-* Implements hook_menu().
-*/
+ * Implements hook_menu().
+ */
 function comment_tree_menu() {
 
   $items['admin/config/system/comment-tree'] = array(
@@ -127,8 +127,8 @@ function comment_tree_menu() {
 }
 
 /**
-* Implements hook_permission().
-*/
+ * Implements hook_permission().
+ */
 function comment_tree_permission() {
   return array(
     'administer comment_tree' => array(
@@ -139,8 +139,8 @@ function comment_tree_permission() {
 }
 
 /**
-* Generate Form; Build Form
-*/
+ * Generate Form; Build Form
+ */
 function comment_tree_generate_form($form, &$form_state) {
 
   $link = l(t('Maintenance Mode'), 'admin/config/development/maintenance');
@@ -166,8 +166,8 @@ function comment_tree_generate_form($form, &$form_state) {
 }
 
 /**
-* Generate Form; Form Submit
-*/
+ * Generate Form; Form Submit
+ */
 function comment_tree_generate_form_submit($form, &$form_state) {
 
   $batch = array(
@@ -181,8 +181,8 @@ function comment_tree_generate_form_submit($form, &$form_state) {
 }
 
 /**
-* Comment Tree Generate
-*/
+ * Comment Tree Generate
+ */
 function comment_tree_generate(&$context) {
 
     if (!isset($context['sandbox']['total'])) {
