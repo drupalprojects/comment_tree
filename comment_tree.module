@@ -190,7 +190,7 @@ function comment_tree_generate(&$context) {
     $query = db_select('comment', 'c');
     $query->fields('c', array('cid'));
     $query->orderBy('cid', 'DESC');
-    $query->range(0,1);
+    $query->range(0, 1);
     $last = $query->execute()->fetchField();
 
     $context['sandbox']['total'] = $last;
@@ -213,7 +213,7 @@ function comment_tree_generate(&$context) {
   $query->fields('c', array('cid', 'pid'));
   $query->orderBy('cid');
   $query->condition('cid', $context['sandbox']['current'], '>');
-  $query->range(0,5);
+  $query->range(0, 5);
   $batch = $query->execute();
 
   while ($current = $batch->fetchAssoc()) {
@@ -229,7 +229,7 @@ function comment_tree_generate(&$context) {
 
     if (!empty($current['pid'])) {
 
-      // Get the tree of the comment's parent
+      // Get the tree of the comment's parent.
       $query = db_select('comment_tree', 'c');
       $query->fields('c', array('ancestor', 'depth'));
       $query->condition('c.descendant', $current['pid']);
@@ -244,7 +244,7 @@ function comment_tree_generate(&$context) {
         ));
         $query->execute();
       }
-  
+
     }
 
     $context['sandbox']['current'] = $current['cid'];
@@ -253,7 +253,7 @@ function comment_tree_generate(&$context) {
 
   $context['message'] = 'Now Processing Comment ' . $context['sandbox']['current'];
   $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total'];
-  
+
   if ($context['finished'] == 1) {
     drupal_set_message(t('Comment Tree Generation Complete.'));
   }
