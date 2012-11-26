@@ -3,3 +3,4 @@ description = Creates a Closure Table for Comments
 package = Comment
 core = 7.x
 dependencies[] = comment
+configure = admin/config/system/comment-tree
