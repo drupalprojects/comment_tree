@@ -11,7 +11,6 @@
  * Implements hook_comment_insert().
  *
  * When a comment is inserted, create it's tree.
- *
  */
 function comment_tree_comment_insert($comment) {
 
@@ -26,7 +25,7 @@ function comment_tree_comment_insert($comment) {
 
   if (!empty($comment->pid)) {
 
-    // Get the tree of the comment's parent
+    // Get the tree of the comment's parent.
     $query = db_select('comment_tree', 'c');
     $query->fields('c', array('ancestor', 'depth'));
     $query->condition('c.descendant', $comment->pid);
@@ -51,14 +50,13 @@ function comment_tree_comment_insert($comment) {
  *
  * Move a Comment to it's New Parent's Tree
  * If the Parent has changed
- *
  */
 function comment_tree_comment_update($comment) {
 
   if ($comment->original->pid != $comment->pid) {
 
-    // First Remove the Tree above this comment
-    // We'll use db_query since db_delete does not allow joining
+    // First Remove the Tree above this comment.
+    // We'll use db_query since db_delete does not allow joining.
     $query_string = 'DELETE a FROM {comment_tree} AS a ';
     $query_string .= 'JOIN {comment_tree} AS d ';
     $query_string .= 'ON a.descendant = d.descendant ';
@@ -68,7 +66,7 @@ function comment_tree_comment_update($comment) {
     $query_string .= 'x.ancestor IS NULL';
     db_query($query_string, array(':cid' => $comment->cid));
 
-    // If the Comment has a Parent, move it under the new parent's tree
+    // If the Comment has a Parent, move it under the new parent's tree.
     if (!empty($comment->pid)) {
 
       $query = db_select('comment_tree', 'supertree');
@@ -100,7 +98,6 @@ function comment_tree_comment_update($comment) {
  * Implements hook_comment_delete().
  *
  * Deletes the Comment's Tree on Comment Delete
- *
  */
 function comment_tree_comment_delete($comment) {
 
@@ -118,7 +115,6 @@ function comment_tree_comment_delete($comment) {
 */
 function comment_tree_menu() {
 
-   // Admin Pages
   $items['admin/config/system/comment-tree'] = array(
     'title' => 'Comment Tree',
     'description' => 'Generate the Comment Tree',
