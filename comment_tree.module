@@ -144,7 +144,7 @@ function comment_tree_permission() {
 function comment_tree_generate_form($form, &$form_state) {
 
   $link = l(t('Maintenance Mode'), 'admin/config/development/maintenance');
-  
+
   $info_string = 'Generating a new Comment Tree will delete ';
   $info_string .= 'the current tree and generate a new one. ';
   $info_string .= 'It is highly recommended that you first ';
@@ -185,77 +185,77 @@ function comment_tree_generate_form_submit($form, &$form_state) {
  */
 function comment_tree_generate(&$context) {
 
-    if (!isset($context['sandbox']['total'])) {
-
-       $query = db_select('comment', 'c');
-       $query->fields('c', array('cid'));
-       $query->orderBy('cid', 'DESC');
-       $query->range(0,1);
-       $last = $query->execute()->fetchField();
-
-       $context['sandbox']['total'] = $last;
-
-       if (empty($context['sandbox']['total'])) {
-         $context['finished'] = 1;
-         drupal_set_message(t('No Comments to Process.'));
-         return;
-       }
-
-       $query = db_delete('comment_tree');
-       $query->execute();
-
-       $context['finished'] = 0;
-       $context['sandbox']['current'] = 0;
-
-    }
+  if (!isset($context['sandbox']['total'])) {
 
     $query = db_select('comment', 'c');
-    $query->fields('c', array('cid', 'pid'));
-    $query->orderBy('cid');
-    $query->condition('cid', $context['sandbox']['current'], '>');
-    $query->range(0,5);
-    $batch = $query->execute();
+    $query->fields('c', array('cid'));
+    $query->orderBy('cid', 'DESC');
+    $query->range(0,1);
+    $last = $query->execute()->fetchField();
 
-    while ($current = $batch->fetchAssoc()) {
+    $context['sandbox']['total'] = $last;
 
-      // Add the Link to itself (Depth 0)
-      $query = db_insert('comment_tree');
-      $query->fields(array(
-        'ancestor' => $current['cid'],
-        'descendant' => $current['cid'],
-        'depth' => 0,
-      ));
-      $query->execute();
+    if (empty($context['sandbox']['total'])) {
+      $context['finished'] = 1;
+      drupal_set_message(t('No Comments to Process.'));
+      return;
+    }
 
-      if (!empty($current['pid'])) {
+    $query = db_delete('comment_tree');
+    $query->execute();
 
-        // Get the tree of the comment's parent
-        $query = db_select('comment_tree', 'c');
-        $query->fields('c', array('ancestor', 'depth'));
-        $query->condition('c.descendant', $current['pid']);
-        $result = $query->execute();
+    $context['finished'] = 0;
+    $context['sandbox']['current'] = 0;
 
-        while ($record = $result->fetchAssoc()) {
-          $query = db_insert('comment_tree');
-          $query->fields(array(
-            'ancestor' => $record['ancestor'],
-            'descendant' => $current['cid'],
-            'depth' => $record['depth'] + 1,
-          ));
-          $query->execute();
-        }
+  }
 
+  $query = db_select('comment', 'c');
+  $query->fields('c', array('cid', 'pid'));
+  $query->orderBy('cid');
+  $query->condition('cid', $context['sandbox']['current'], '>');
+  $query->range(0,5);
+  $batch = $query->execute();
+
+  while ($current = $batch->fetchAssoc()) {
+
+    // Add the Link to itself (Depth 0)
+    $query = db_insert('comment_tree');
+    $query->fields(array(
+      'ancestor' => $current['cid'],
+      'descendant' => $current['cid'],
+      'depth' => 0,
+    ));
+    $query->execute();
+
+    if (!empty($current['pid'])) {
+
+      // Get the tree of the comment's parent
+      $query = db_select('comment_tree', 'c');
+      $query->fields('c', array('ancestor', 'depth'));
+      $query->condition('c.descendant', $current['pid']);
+      $result = $query->execute();
+
+      while ($record = $result->fetchAssoc()) {
+        $query = db_insert('comment_tree');
+        $query->fields(array(
+          'ancestor' => $record['ancestor'],
+          'descendant' => $current['cid'],
+          'depth' => $record['depth'] + 1,
+        ));
+        $query->execute();
       }
-
-      $context['sandbox']['current'] = $current['cid'];
-
+  
     }
 
-    $context['message'] = 'Now Processing Comment ' . $context['sandbox']['current'];
-    $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total'];
+    $context['sandbox']['current'] = $current['cid'];
 
-    if ($context['finished'] == 1) {
-      drupal_set_message(t('Comment Tree Generation Complete.'));
-    }
+  }
+
+  $context['message'] = 'Now Processing Comment ' . $context['sandbox']['current'];
+  $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total'];
+  
+  if ($context['finished'] == 1) {
+    drupal_set_message(t('Comment Tree Generation Complete.'));
+  }
 
 }
