@@ -48,8 +48,8 @@ function comment_tree_comment_insert($comment) {
 /**
  * Implements hook_comment_update().
  *
- * Move a Comment to it's New Parent's Tree
- * If the Parent has changed
+ * Move a Comment to it's New Parent's Tree.
+ * If the Parent has changed.
  */
 function comment_tree_comment_update($comment) {
 
@@ -97,7 +97,7 @@ function comment_tree_comment_update($comment) {
 /**
  * Implements hook_comment_delete().
  *
- * Deletes the Comment's Tree on Comment Delete
+ * Deletes the Comment's Tree on Comment Delete.
  */
 function comment_tree_comment_delete($comment) {
 
@@ -139,7 +139,7 @@ function comment_tree_permission() {
 }
 
 /**
- * Generate Form; Build Form
+ * Generate Form; Build Form.
  */
 function comment_tree_generate_form($form, &$form_state) {
 
@@ -166,7 +166,7 @@ function comment_tree_generate_form($form, &$form_state) {
 }
 
 /**
- * Generate Form; Form Submit
+ * Generate Form; Form Submit.
  */
 function comment_tree_generate_form_submit($form, &$form_state) {
 
@@ -181,7 +181,7 @@ function comment_tree_generate_form_submit($form, &$form_state) {
 }
 
 /**
- * Comment Tree Generate
+ * Comment Tree Generate.
  */
 function comment_tree_generate(&$context) {
 
