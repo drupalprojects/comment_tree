@@ -51,7 +51,7 @@ function comment_tree_schema() {
   );
 
   return $schema;
-  
+
 }
 
 /**
