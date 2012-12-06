@@ -55,39 +55,44 @@ function comment_tree_comment_update($comment) {
 
   if ($comment->original->pid != $comment->pid) {
 
-    // First Remove the Tree above this comment.
-    // We'll use db_query since db_delete does not allow joining.
-    $query_string = 'DELETE a FROM {comment_tree} AS a ';
-    $query_string .= 'JOIN {comment_tree} AS d ';
-    $query_string .= 'ON a.descendant = d.descendant ';
-    $query_string .= 'LEFT JOIN {comment_tree} AS x ';
-    $query_string .= 'ON x.ancestor = d.ancestor AND x.descendant = a.ancestor ';
-    $query_string .= 'WHERE d.ancestor = :cid AND ';
-    $query_string .= 'x.ancestor IS NULL';
-    db_query($query_string, array(':cid' => $comment->cid));
+    // First Get the comment's tree below itself.
+    $query = db_select('comment_tree', 'c');
+    $query->fields('c', array('descendant', 'depth'));
+    $query->condition('c.ancestor', $comment->cid);
+    $result = $query->execute();
 
-    // If the Comment has a Parent, move it under the new parent's tree.
-    if (!empty($comment->pid)) {
+    $descendants = array();
+    $descendant_ids = array();
+    while ($record = $result->fetchAssoc()) {
+      $descendants[] = array(
+        'descendant' => $record['descendant'],
+        'depth' => $record['depth'],
+      );
+      $descendant_ids[] = $record['descendant'];
+    }
 
-      $query = db_select('comment_tree', 'supertree');
-      $query->addField('supertree', 'ancestor', 'ancestor');
-      $query->addField('subtree', 'descendant', 'descendant');
-      $query->addExpression('supertree.depth+subtree.depth+1', 'depth');
-      $query->join('comment_tree', 'subtree');
-      $query->condition('subtree.ancestor', $comment->cid);
-      $query->condition('supertree.descendant', $comment->pid);
-      $result = $query->execute();
+    // Then delete the comment tree above the current comment.
+    $query = db_delete('comment_tree');
+    $query->condition('descendant', $descendant_ids);
+    $query->condition('ancestor', $descendant_ids, 'NOT IN');
+    $query->execute();
 
-      while ($record = $result->fetchAssoc()) {
+    // Finally, copy the tree from the new parent
+    $query = db_select('comment_tree', 'c');
+    $query->fields('c', array('ancestor', 'depth'));
+    $query->condition('c.descendant', $comment->pid);
+    $result = $query->execute();
+
+    while ($record = $result->fetchAssoc()) {
+      foreach ($descendants as $descendant) {
         $query = db_insert('comment_tree');
         $query->fields(array(
           'ancestor' => $record['ancestor'],
-          'descendant' => $record['descendant'],
-          'depth' => $record['depth'],
+          'descendant' => $descendant['descendant'],
+          'depth' => $record['depth'] + $descendant['depth'] + 1,
         ));
         $query->execute();
       }
-
     }
 
   }
