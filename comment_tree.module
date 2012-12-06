@@ -77,7 +77,7 @@ function comment_tree_comment_update($comment) {
     $query->condition('ancestor', $descendant_ids, 'NOT IN');
     $query->execute();
 
-    // Finally, copy the tree from the new parent
+    // Finally, copy the tree from the new parent.
     $query = db_select('comment_tree', 'c');
     $query->fields('c', array('ancestor', 'depth'));
     $query->condition('c.descendant', $comment->pid);
