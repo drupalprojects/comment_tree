@@ -48,14 +48,15 @@ function comment_tree_comment_insert($comment) {
 /**
  * Implements hook_comment_update().
  *
- * Move a Comment to it's New Parent's Tree.
- * If the Parent has changed.
+ * If the parent has changed:
+ * move a comment to its new parent's tree.
+ * 
  */
 function comment_tree_comment_update($comment) {
 
   if ($comment->original->pid != $comment->pid) {
 
-    // First Get the comment's tree below itself.
+    // First get the comment's tree below itself.
     $query = db_select('comment_tree', 'c');
     $query->fields('c', array('descendant', 'depth'));
     $query->condition('c.ancestor', $comment->cid);
@@ -102,7 +103,7 @@ function comment_tree_comment_update($comment) {
 /**
  * Implements hook_comment_delete().
  *
- * Deletes the Comment's Tree on Comment Delete.
+ * Deletes the comment's tree on comment delete.
  */
 function comment_tree_comment_delete($comment) {
 
@@ -255,8 +256,8 @@ function comment_tree_generate(&$context) {
     $context['sandbox']['current'] = $current['cid'];
 
   }
-
-  $context['message'] = 'Now Processing Comment ' . $context['sandbox']['current'];
+  
+  $context['message'] = t('Now Processing Comment @count', array('@count' => $context['sandbox']['current']));
   $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total'];
 
   if ($context['finished'] == 1) {

@@ -64,8 +64,8 @@ function comment_tree_enable() {
   $count = $query->execute()->fetchField();
 
   if (!empty($count)) {
-    $link = l(t('Generate a Comment Tree'), 'admin/config/system/comment-tree');
-    drupal_set_message(filter_xss(t('You Must !link before this module can work properly.', array('!link' => $link))), 'error');
+    $link = l(t('generate a comment tree'), 'admin/config/system/comment-tree');
+    drupal_set_message(filter_xss(t('You must !link before this module can work properly.', array('!link' => $link))), 'error');
   }
 
 }
