@@ -50,7 +50,6 @@ function comment_tree_comment_insert($comment) {
  *
  * If the parent has changed:
  * move a comment to its new parent's tree.
- * 
  */
 function comment_tree_comment_update($comment) {
 
@@ -256,7 +255,7 @@ function comment_tree_generate(&$context) {
     $context['sandbox']['current'] = $current['cid'];
 
   }
-  
+
   $context['message'] = t('Now Processing Comment @count', array('@count' => $context['sandbox']['current']));
   $context['finished'] = $context['sandbox']['current'] / $context['sandbox']['total'];
 
