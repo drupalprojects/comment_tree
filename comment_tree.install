@@ -19,14 +19,14 @@ function comment_tree_schema() {
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
-      'decedent' => array(
-        'description' => 'The current {comment}.cid decedent.',
+      'descendant' => array(
+        'description' => 'The current {comment}.cid descendant.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
       ),
       'depth' => array(
-        'description' => 'The depth of the decedent compared to the ancestor.',
+        'description' => 'The depth of the descendant compared to the ancestor.',
         'type' => 'int',
         'unsigned' => TRUE,
         'not null' => TRUE,
@@ -35,19 +35,19 @@ function comment_tree_schema() {
     ),
     'indexes' => array(
       'comment_ancestor' => array('ancestor'),
-      'comment_decedent' => array('decedent'),
+      'comment_descendant' => array('descendant'),
     ),
     'foreign keys' => array(
       'comment_ancestor' => array(
         'table' => 'comment',
         'columns' => array('ancestor' => 'cid'),
       ),
-      'comment_decedent' => array(
+      'comment_descendant' => array(
         'table' => 'comment',
-        'columns' => array('decedent' => 'uid'),
+        'columns' => array('descendant' => 'uid'),
       ),
     ),
-    'primary key' => array('ancestor', 'decedent'),
+    'primary key' => array('ancestor', 'descendant'),
   );
 
   return $schema;
